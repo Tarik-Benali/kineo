@@ -57,8 +57,8 @@
             }
 
             $dateJour = date('d/m/Y');
-            $nomPatient = getPatientPrenomLocal($nomCabinet,$idPatient);
-            $prePatient = getPatientNomLocal($nomCabinet,$idPatient);
+            $nomPatient = getPatientNomLocal($nomCabinet,$idPatient);
+            $prePatient = getPatientPrenomLocal($nomCabinet,$idPatient);
             $agePatient = getPatientAgeLocal($nomCabinet,$idPatient);
 
             $signagl    = explode("||", getPatientSignalisation($nomCabinet,$idPatient));

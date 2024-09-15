@@ -197,13 +197,13 @@
                                         ?>
 
                                     </tbody>
-                                    <!--tfoot>
+                                    <tfoot>
                                             <tr>
                                                 <td colspan="5">
                                                     <div class="pagination pagination-centered"></div>
                                                 </td>
                                             </tr>
-                                    </tfoot-->
+                                    </tfoot>
                                 </table>
 
                             </div>
@@ -364,17 +364,27 @@
     </script>
 
     <script type="text/javascript">
-        function printData(){
-           var divToPrint=document.getElementById("footable-res2");
-           newWin= window.open("");
-           newWin.document.write(divToPrint.outerHTML);
-           newWin.print();
-           newWin.close();
+        function printData() {
+            var divToPrint = document.getElementById("footable-res2");
+
+            var clonedTable = divToPrint.cloneNode(true);
+
+            var tfoot = clonedTable.getElementsByTagName("tfoot");
+            if (tfoot.length > 0) {
+                clonedTable.removeChild(tfoot[0]);
+            }
+
+            var newWin = window.open("");
+            newWin.document.write(clonedTable.outerHTML);
+            newWin.document.close();
+            newWin.focus();
+            newWin.print();
+            newWin.close();
         }
 
-        $('#printDay').on('click',function(){
+        document.getElementById('printDay').addEventListener('click', function () {
             printData();
-        })
+        });
     </script>
 
 </body>

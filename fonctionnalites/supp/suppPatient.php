@@ -20,15 +20,15 @@
 			echo "Failed to connect to MySQL: " . mysqli_connect_error();
 		 }
 
-		//$del="DELETE FROM patient WHERE idPatient='$identifiantP'";
-		 $del="UPDATE relpatcab SET etat='0' WHERE idPatient='$identifiantP' AND idCabinet = '$idCabinet'";
-			if ($con->query($del) === TRUE) {
+		$del="DELETE FROM patient WHERE idPatient='$identifiantP'";
+		//$del="UPDATE relpatcab SET etat='0' WHERE idPatient='$identifiantP' AND idCabinet = '$idCabinet'";
+		if ($con->query($del) === TRUE) {
 
-					hisSuppPatient($con, $ceMoment, $idCabinet, $faiseur, $identifiantP);
-					header('location: ../../affichagePatients.php');
-			} else {
-					echo "Error deleting record: " . $con->error;
-			}
+				hisSuppPatient($con, $ceMoment, $idCabinet, $faiseur, $identifiantP);
+				header('location: ../../affichagePatients.php');
+		} else {
+				echo "Error deleting record: " . $con->error;
+		}
 
 		mysqli_close($con);
 ?> 

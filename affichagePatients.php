@@ -331,6 +331,8 @@
                                                             echo "<td data-value> $donnees[sexePatient]     </td>";
                                                             echo "<td data-value> $donnees[profession]    </td>";
 
+                                                            $bilans = str_replace("'","\'", $donnees['bilan']);
+
                                                             echo "<td data-value=\"1\">  
                                                                         <a style=\"color:inherit;\" href=\"rdvpatient.php?idPatient=$idPatient\">
                                                                             <button type=\"button\" class=\"btn btn-info\">
@@ -339,7 +341,7 @@
                                                                             </button> 
                                                                         </a>    
 
-                                                                        <button type=\"button\" class=\"btn btn-default\" data-toggle=\"modal\" data-target=\"#ModalModification\" onclick=\"sendIdToUpdate('$idPatient','$nomPatient','$prenomPatient','$donnees[dateNaissPatient]','$lieuNaiss','$donnees[adressePatient]','$donnees[emailPatient]','$phone1','$donnees[sexePatient]','$donnees[groupagePatient]','$donnees[profession]','$donnees[bilan]','$phone2','$phone3')\">
+                                                                        <button type=\"button\" class=\"btn btn-default\" data-toggle=\"modal\" data-target=\"#ModalModification\" onclick=\"sendIdToUpdate('$idPatient','$nomPatient','$prenomPatient','$donnees[dateNaissPatient]','$lieuNaiss','$donnees[adressePatient]','$donnees[emailPatient]','$phone1','$donnees[sexePatient]','$donnees[groupagePatient]','$donnees[profession]', '$bilans','$phone2','$phone3')\">
 
                                                                                 <span class=\"entypo-pencil\"></span>
                                                                         </button> 
@@ -470,6 +472,8 @@
                                                             echo "<td data-value> $donnees[sexePatient]     </td>";
                                                             echo "<td data-value> $donnees[profession]    </td>";
 
+                                                            $bilans = str_replace("'","\'", $donnees['bilan']);
+
                                                             echo "<td data-value=\"1\">  
                                                                         <a style=\"color:inherit;\" href=\"rdvpatient.php?idPatient=$idPatient\">
                                                                             <button type=\"button\" class=\"btn btn-info\">
@@ -478,7 +482,7 @@
                                                                             </button> 
                                                                         </a>    
 
-                                                                        <button type=\"button\" class=\"btn btn-default\" data-toggle=\"modal\" data-target=\"#ModalModification\" onclick=\"sendIdToUpdate('$idPatient','$nomPatient','$prenomPatient','$donnees[dateNaissPatient]','$lieuNaiss','$donnees[adressePatient]','$donnees[emailPatient]','$phone1','$donnees[sexePatient]','$donnees[groupagePatient]','$donnees[profession]','$donnees[bilan]','$phone2','$phone3')\">
+                                                                        <button type=\"button\" class=\"btn btn-default\" data-toggle=\"modal\" data-target=\"#ModalModification\" onclick=\"sendIdToUpdate('$idPatient','$nomPatient','$prenomPatient','$donnees[dateNaissPatient]','$lieuNaiss','$donnees[adressePatient]','$donnees[emailPatient]','$phone1','$donnees[sexePatient]','$donnees[groupagePatient]','$donnees[profession]','$bilans','$phone2','$phone3')\">
 
                                                                                 <span class=\"entypo-pencil\"></span>
                                                                         </button> 
@@ -851,12 +855,6 @@
             document.getElementById("phone_2M").value = ph_2M;
             document.getElementById("phone_3M").value = ph_3M;
          // window.location.href = "affichagePatients.php?identifiantModification=" + id;          
-        }
-
-
-        function confirmation() {
-          
-          confirm("");
         }
 
         function confirmation() {

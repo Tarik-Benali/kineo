@@ -218,7 +218,8 @@ if (isset($_SESSION['typeCompte']) && isset($_REQUEST['nomCabinet']) && $_SESSIO
             if (isset($_REQUEST['type'])) {
 
                 if ($_REQUEST['type'] == "0") {
-                    $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"0",$signallisation,$motifsignallis);
+                    $lastIdInseted = insertionRDV($nomCabinet, $name, $prenom, $mail, $phone, $dateRDV, $heureRDV, $motifCons, $medecin, $identifiantP,"0", 
+                        $signallisation, $motifsignallis);
                     insertionRelationRDVSeance($nomCabinet,$id_seance,$lastIdInseted);
                     header("Location: ../../medecin.php");
                   }
