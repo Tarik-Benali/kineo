@@ -5591,9 +5591,19 @@ function recetteTotalDuJour($nomBD,$toDay){
 	                        }
 
                         echo "<tr>
-                        			<td>Aujourd'hui ($toDay)</td>
+                        			<td>Total Aujourd'hui ($toDay)</td>
                         			<td>$total da</td>
                         	  </tr>";
+
+                        echo "<tr>
+                        			<td>Séance Simple</td>
+                        			<td>" . recetteConsSimpleDuJour($nomBD,$toDay) . " da</td>
+                        	  </tr>";
+
+                        echo "<tr>
+                        			<td>Vestibulaire</td>
+                        			<td>" . recetteConsVestibulaireDuJour($nomBD,$toDay) . " da</td>
+                        	  </tr>";	  	  
                     }else{
                     	echo "<tr>
                         			<td>Aujourd'hui ($toDay)</td>
@@ -5608,7 +5618,92 @@ function recetteTotalDuJour($nomBD,$toDay){
                 {
                    die('Erreur : '.$e->getMessage());
                 } 
-		}		
+		}	
+
+function recetteConsSimpleDuJour($nomBD,$toDay){
+			
+	global $host_name;
+	global $db_user_name;
+	global $db_password;
+
+	$database 	= crypterNomDeLaBase($nomBD);
+
+	$date    = date('d/m/Y');  
+    //$toDay 	 = date('Y-m-d'); 
+
+    $total = 0;
+
+    try
+        {
+            $pdo_options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
+            $bdd = new PDO("mysql:host=$host_name;dbname=$database",$db_user_name,$db_password, $pdo_options);
+
+            $reponse = $bdd->query("SELECT * FROM `addition` WHERE addition.date_cons='$toDay' AND addition.type_seance ='simple'");
+            $nbr = $reponse->rowCount();
+
+            if ($nbr > 0) {
+
+            	while ($donnees = $reponse->fetch())
+                    {
+                        $total = $total + $donnees['addition'];
+                    }
+
+                return $total;	  	  
+            }else{
+            	return 0;
+            }
+
+            $reponse->closeCursor();
+        }
+
+    catch(Exception $e)
+        {
+           die('Erreur : '.$e->getMessage());
+        } 
+}	
+
+
+function recetteConsVestibulaireDuJour($nomBD,$toDay){
+			
+	global $host_name;
+	global $db_user_name;
+	global $db_password;
+
+	$database 	= crypterNomDeLaBase($nomBD);
+
+	$date    = date('d/m/Y');  
+    //$toDay 	 = date('Y-m-d'); 
+
+    $total = 0;
+
+    try
+        {
+            $pdo_options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
+            $bdd = new PDO("mysql:host=$host_name;dbname=$database",$db_user_name,$db_password, $pdo_options);
+
+            $reponse = $bdd->query("SELECT * FROM `addition` WHERE addition.date_cons='$toDay' AND addition.type_seance ='vestibulaire'");
+            $nbr = $reponse->rowCount();
+
+            if ($nbr > 0) {
+
+            	while ($donnees = $reponse->fetch())
+                    {
+                        $total = $total + $donnees['addition'];
+                    }
+
+                return $total;	  	  
+            }else{
+            	return 0;
+            }
+
+            $reponse->closeCursor();
+        }
+
+    catch(Exception $e)
+        {
+           die('Erreur : '.$e->getMessage());
+        } 
+}				
 
 
 function getConsultationPrice($nomBD){
@@ -5618,31 +5713,66 @@ function getConsultationPrice($nomBD){
 	global $db_password;
 
 	$database 	= crypterNomDeLaBase($nomBD);
-						try
-                            {
-                                                    
-                            $pdo_options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
-                            $bdd = new PDO("mysql:host=$host_name;dbname=$database",$db_user_name,$db_password, $pdo_options);                      
-                            
-                            $reponse = $bdd->query('SELECT prixConsultation FROM prixconsultation');
+	
+	try
+        {
+                                
+        $pdo_options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
+        $bdd = new PDO("mysql:host=$host_name;dbname=$database",$db_user_name,$db_password, $pdo_options);                      
+        
+        $reponse = $bdd->query('SELECT prixConsultation FROM prixconsultation WHERE typeConsultation = "simple"');
 
-                            $nbr = $reponse->rowCount();   
+        $nbr = $reponse->rowCount();   
 
-                            if ($nbr != 0) 
-                            {
-	                            while ($donnees = $reponse->fetch())
-	                                {
-	                                  $prixConsultation   = $donnees['prixConsultation'];
-	                                }
-                            }    
-                                return $prixConsultation;
-                           $reponse->closeCursor();
-                          }
-                        catch(Exception $e)
-                            {
-                               die('Erreur : '.$e->getMessage());
-                            }  
-		}
+        if ($nbr != 0) 
+        {
+            while ($donnees = $reponse->fetch())
+                {
+                  $prixConsultation   = $donnees['prixConsultation'];
+                }
+        }    
+            return $prixConsultation;
+       $reponse->closeCursor();
+      }
+    catch(Exception $e)
+        {
+           die('Erreur : '.$e->getMessage());
+        }  
+}
+
+function getVestibulaireConsultationPrice($nomBD){
+			
+	global $host_name;
+	global $db_user_name;
+	global $db_password;
+
+	$database 	= crypterNomDeLaBase($nomBD);
+	
+	try
+        {
+                                
+        $pdo_options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
+        $bdd = new PDO("mysql:host=$host_name;dbname=$database",$db_user_name,$db_password, $pdo_options);                      
+        
+        $reponse = $bdd->query('SELECT prixConsultation FROM prixconsultation WHERE typeConsultation = "vestibulaire"');
+
+        $nbr = $reponse->rowCount();   
+
+        if ($nbr != 0) 
+        {
+            while ($donnees = $reponse->fetch())
+                {
+                  $prixConsultation   = $donnees['prixConsultation'];
+                }
+        }    
+            return $prixConsultation;
+       $reponse->closeCursor();
+      }
+    catch(Exception $e)
+        {
+           die('Erreur : '.$e->getMessage());
+        }  
+}
 /*
 function getPatientNameFromIdCons($nomBD,$idCons){
 			
@@ -7705,7 +7835,7 @@ function getRDVForAgenda($nomBD,$idMedecin){
                                                 $heure     = $donnees['heureRDV'];
                                                 $motif     = $donnees['motifCons'];
                                                 $medecin   = $donnees['medecin'];
-                                                $patient   = $donnees['nomP'] . " " . $donnees['prenoP'];
+                                                $patient   = $donnees['nomP'] . "_" . $donnees['prenoP'];
                                                 $idPatient = $donnees['idPatient'];
 
                                                 $patient_a_risque = $donnees['patient_a_risque'];
@@ -9512,7 +9642,7 @@ function getPatientNomLocal($nomBD,$idUser){
              
         }      
 
-function insertAdditionCons($nomBD,$idPat,$idRDV,$idDoc,$date,$heure,$addition,$nomP,$prenomP){
+function insertAdditionCons($nomBD,$idPat,$idRDV,$idDoc,$date,$heure,$addition,$nomP,$prenomP,$typeCons){
     
 		global $host_name;
 		global $db_user_name;
@@ -9524,23 +9654,22 @@ function insertAdditionCons($nomBD,$idPat,$idRDV,$idDoc,$date,$heure,$addition,$
 			$idPat = getIdPatientFromNometPrenom($nomP,$prenomP);
 		}
 		
-			try
-                {
-                                                    
-                    $pdo_options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
-                    $bdd = new PDO("mysql:host=$host_name;dbname=$nomB",$db_user_name,$db_password, $pdo_options);  
- 
-                    $reponse = $bdd->query("INSERT INTO `addition`(`idPatient`, `idRDV`, `idMedecin`, `date_cons`, `heure`, `addition`) VALUES ('$idPat','$idRDV','$idDoc','$date','$heure','$addition')");   
-                    //$id_lit = $bdd->lastInsertId();
+		try
+            {
+                                                
+                $pdo_options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
+                $bdd = new PDO("mysql:host=$host_name;dbname=$nomB",$db_user_name,$db_password, $pdo_options);  
 
-                    $reponse->closeCursor();
-                }
+                $reponse = $bdd->query("INSERT INTO `addition`(`idPatient`, `idRDV`, `idMedecin`, `date_cons`, `heure`, `addition`, `type_seance`) VALUES ('$idPat','$idRDV','$idDoc','$date','$heure','$addition','$typeCons')");   
 
-            catch(Exception $e)
-                {
-                    die('Erreur : '.$e->getMessage());
-                }
-		}
+                $reponse->closeCursor();
+            }
+
+        catch(Exception $e)
+            {
+                die('Erreur : '.$e->getMessage());
+            }
+	}
 
 
 function getHeureFromSeance($nomBD,$idSeance){
@@ -11013,6 +11142,121 @@ function nbrAbsenceTB($nomBD){
 	    }
 	    catch(Exception $e){
         	die('Erreur : '.$e->getMessage());
+      	}
+	}
+
+	function saveSeances($nomCabinet, $idCab, $medecin, $dateFinProg, $dateDebProg, $typeSeance){
+
+
+        $nomBD  = crypterNomDeLaBase($nomCabinet);
+
+        global $host_name;
+        global $baseGlobale;
+        global $db_user_name;
+        global $db_password;
+
+        $dureeSeance = dureeParSeance($nomCabinet);
+
+        if ($dureeSeance=="") {
+            $dureeSeance = 15;
+        }
+
+      	$link = mysqli_connect($host_name, $db_user_name, $db_password, $nomBD);
+       
+      	if($link === false){
+          	die("ERROR: Could not connect. " . mysqli_connect_error());
+      	}
+       
+
+	    $idCab        = mysqli_real_escape_string($link, $idCab);
+	    $medecin 	  = mysqli_real_escape_string($link, $medecin);
+	    $dateFinProg  = mysqli_real_escape_string($link, $dateFinProg);
+	    $dateDebProg  = mysqli_real_escape_string($link, $dateDebProg);
+	    $typeSeance   = mysqli_real_escape_string($link, $typeSeance);
+
+        $jourOuvrables = getNameOuvrableDays($nomCabinet);
+
+
+        $dateDebProgD = date_create($dateDebProg);
+        $dateFinProgD = date_create($dateFinProg);
+        $diff        = date_diff($dateDebProgD,$dateFinProgD);
+        $nbrJours    = $diff->format("%a");
+
+        $nbrJours    = $nbrJours + 1;
+
+        $tempsEntreLesSeances   = gerDureeEntreRDV($nomCabinet);
+
+        $donneCabinet       = gerOuvertureFermeture($nomCabinet);
+
+        $donneCabinet       = substr($donneCabinet, 0, -1);
+        $donneCabinet       = substr($donneCabinet, 1);
+
+        $str                = explode(",",$donneCabinet);
+
+        list($ouvertureCabinet, $fermetureCabinet, $nombrePatParSean) = explode(',', $donneCabinet);
+
+        $ouvertureCabinet = strtotime($ouvertureCabinet);
+        $fermetureCabinet = strtotime($fermetureCabinet);
+
+        $dateSelectinee = $dateDebProg;
+
+        $joursOuvert  = explode(",",$jourOuvrables);
+        
+
+        for ($i=0; $i < $nbrJours; $i++) { 
+
+            $heureSeance = $ouvertureCabinet;
+
+            setlocale(LC_TIME, "fr_FR");
+
+            $dateTimeselected = strtotime($dateSelectinee);
+            $jourSelectinee   = date('Y-m-d',$dateTimeselected);
+
+          
+            $jourSelectinee   = date('Y-m-d',strtotime($jourSelectinee . "+". $i ." days"));
+
+            $timestamp = strtotime($jourSelectinee);
+
+            $day = date('D', $timestamp);
+
+            $nomduJour = "-";
+
+
+            switch ($day) {
+                case 'Wed':
+                  	$nomduJour = "mercredi";
+                break;
+              	case 'Thu':
+                  	$nomduJour = "jeudi";
+                break;
+              	case 'Fri':
+                  	$nomduJour = "vendredi";
+                break;
+              	case 'Sat':
+                  	$nomduJour = "samedi";
+                break;
+              	case 'Sun':
+                  	$nomduJour = "dimanche";
+                break;
+              	case 'Mon':
+                  	$nomduJour = "lundi";
+                break;
+              	case 'Tue':
+                  	$nomduJour = "mardi";
+                break;
+            }
+
+
+          	if (in_array($nomduJour, $joursOuvert)){
+              	while ($heureSeance < $fermetureCabinet) {
+
+                  	$heureDF = date('H:i:s', $heureSeance);
+                  	insertSeances($nomBD,$typeSeance,$nomduJour,$jourSelectinee,$heureDF);
+
+                  	$heureSeance = strtotime("+".$dureeSeance." minutes", $heureSeance);
+                  	$heureSeance = strtotime("+".$tempsEntreLesSeances." minutes", $heureSeance);
+              	}
+            }   
       	}
 	}
 

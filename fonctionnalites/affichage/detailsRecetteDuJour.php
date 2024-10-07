@@ -50,6 +50,7 @@
                                     $motifCons    = $donnees['motifCons'];
                                     $medecin_suiv = $donnees['medecin_suiv'];
                                     $nomMedecin   = $donnees['nomMedecin'];
+                                    $typeCons     = $donnees['type_seance'];
                                     
                                     $prixConsultation     = $donnees['addition'];
                                     $remarque_fin_seance  = $donnees['remarque_fin_seance'];
@@ -86,6 +87,7 @@
                                               <tr>
                                                 <th>Motif</th>
                                                 <th>Praticien</th>
+                                                <th>Séance</th>
                                                 <th>Tarif</th>
                                                 <th>Note / remarque</th>
                                               </tr>
@@ -93,6 +95,7 @@
                                             <tbody>";
                                               echo "<tr><td>$motifCons</td>
                                                         <td>$medecin</td>
+                                                        <td>$typeCons</td>
                                                         <td>$prixConsultation</td>
                                                         <td>$remarque_fin_seance</td></tr>";
                                     echo "</tbody></table></section><br><hr style=\"border: 1px solid gray;\"><br>"; 

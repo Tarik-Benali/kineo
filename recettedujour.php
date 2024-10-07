@@ -459,6 +459,7 @@
                           success:function(data)  
                           {  
                                if (data != "") {
+                                $('#espaceDetailsRecetteJournaliere').html('')
                                 $('#espaceDetailsRecetteJournaliere').append(data);
                                } else{
                                 document.getElementById('espaceDetailsRecetteJournaliere').innerHTML = "<div style='font-size:20xp; text-align:center; margin-top:10xp'>Pas de détails pour ce jour</div>"

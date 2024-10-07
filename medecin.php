@@ -43,7 +43,8 @@
 
             $jourFerme = getNonOuvrableDays($nomCabinet); 
 
-            $prixConsultation = getConsultationPrice($nomCabinet); 
+            $prixConsultationSimple       = getConsultationPrice($nomCabinet);
+            $prixConsultationVestibulaire = getVestibulaireConsultationPrice($nomCabinet);
 
             //  
             $nbrDesRDV   = nbrRDVTB($nomCabinet);
@@ -639,16 +640,30 @@
                         <input type="hidden" id="patInfos"  name="patientInfo">
                         <input type="hidden" id="remqSean"  name="remarqueseance">
                         <input type="hidden" id="dateSean"  name="dateSeanceCloture" required>
+                        <input type="hidden" id="typeCons"  name="typeCons" value="simple" required>
 
                         <h5 id="textModal"></h5>
 
                         <br>
                         <br>
 
-                        <div style="width: 100%;"> 
-                            <label class="control-label" for="nom">Prix consultation</label>
+                        <!-- Select pour choisir le type de consultation -->
+                        <div style="width: 100%;">
+                            <label class="control-label" for="typeConsultation">Type de consultation</label>
                             <div class="controls">
-                                 <input class="form-control" type="number" id="addition" name="addition" value="<?php echo $prixConsultation;?>" required>
+                            <select class="form-control" id="typeConsultation" name="typeConsultation" onchange="updatePrice()">
+                                <option value="simple">Consultation Simple</option>
+                                <option value="vestibulaire">Consultation Vestibulaire</option>
+                            </select>
+                            </div>
+                        </div>
+
+                        <br>
+
+                        <div style="width: 100%;">
+                            <label class="control-label" for="addition">Prix consultation</label>
+                            <div class="controls">
+                                <input class="form-control" type="number" id="addition" name="addition" value="<?php echo $prixConsultationSimple;?>" required>
                             </div>
                         </div>
 
@@ -848,7 +863,7 @@
                                 //update RDV stats
                                 document.getElementById("idRDVStat").value = idRDV;
       
-                                document.getElementById("patientPasser").innerHTML = patient;
+                                document.getElementById("patientPasser").innerHTML = patient.replace(/_/g, ' ');
                                 document.getElementById("heurePasser").innerHTML = heureDebu;
                                 document.getElementById("datePasser").innerHTML = dateRDV;
                                 document.getElementById("motifPasser").innerHTML = motifUpd.replace("`","'");
@@ -1318,9 +1333,44 @@
             
         }
 
+        function updatePrice() {
+            var prixConsultationSimple       = <?php echo $prixConsultationSimple;?>;
+            var prixConsultationVestibulaire = <?php echo $prixConsultationVestibulaire;?>;
+
+            var typeConsultation = document.getElementById('typeConsultation').value;
+            var additionInput = document.getElementById('addition');
+            var typeConsInput = document.getElementById('typeCons');
+
+            if (typeConsultation === 'simple') {
+              additionInput.value = prixConsultationSimple;
+              typeConsInput.value = "simple";
+            } else if (typeConsultation === 'vestibulaire') {
+              additionInput.value = prixConsultationVestibulaire;
+              typeConsInput.value = "vestibulaire";
+            }
+        }
+
         function showFinModal(){
             document.getElementById('showClotuerSeanceModal').click();
         }
+
+        $(document).ready(function() {
+            var cabinet = "<?php echo $nomCabinet; ?>";
+
+            if (cabinet !== "") {
+                $.ajax({
+                    url: "fonctionnalites/ajout/ajouterSeancesAutomatique.php",
+                    type: "POST", 
+                    data: { nomCabinet: encodeURIComponent(cabinet) },
+                    success: function(response) {
+                        console.log("La requête Ajax a été envoyée avec succès.");
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Erreur lors de l'envoi de la requête Ajax :", error);
+                    }
+                });
+            }
+        });
     </script>    
 
 </body>
