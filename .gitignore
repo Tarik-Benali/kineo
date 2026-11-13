@@ -1,0 +1,10 @@
+# Donnees patients et sauvegardes
+files/dossierPatient/*
+!files/dossierPatient/.gitkeep
+backup/*.sql
+*.sql
+
+# Fichiers d'editeur / locaux
+.idea/
+.vscode/
+*.cmd
