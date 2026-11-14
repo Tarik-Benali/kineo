@@ -1267,77 +1267,38 @@
 	    });
     </script>
 
-    <script>  
+    <script src="assets/js/recherchePatient.js"></script>
+    <script>
          $(document).ready(function(){
 
-              $('#mailPhonePatient').keyup(function(){  
-              	   document.getElementById("saveRDVBtn").disabled = false;
-                   $('#espaceChoixPatient').html('');
+              // Recherche de patient : modale d'ajout de RDV
+              RecherchePatient.attacher({
+                  champ   : '#mailPhonePatient',
+                  champId : '#idPatien',
+                  url     : 'fonctionnalites/affichage/rechercherPatients.php',
+                  surSelection : function () {
+                      document.getElementById("saveRDVBtn").disabled = false;
+                  }
+              });
 
-                   var NomPatient = $(this).val();
+              // Recherche de patient : modale de modification de RDV
+              RecherchePatient.attacher({
+                  champ   : '#mailPhonePatientModif',
+                  champId : '#idPatienModif',
+                  url     : 'fonctionnalites/affichage/rechercherPatients.php',
+                  surSelection : function () {
+                      document.getElementById("updateRDVBtn").disabled = false;
+                  }
+              });
 
-                   if (NomPatient =="") {
-                   	$('#espaceChoixPatient').html('');
-                   	document.getElementById("saveRDVBtn").disabled = false;
-                   }
+              $('#rdvModal').on('shown.bs.modal', function () {
+                  $('#mailPhonePatient').trigger('rp-actualiser').focus();
+              });
 
-                   if (NomPatient != ""){
-
-                      $.ajax({
-                          url:"fonctionnalites/affichage/getPatientFromName.php",  
-                          type:"GET",  
-                          data:{NomPhonePatient: NomPatient},
-                          success:function(data)  
-                          {
-                            //console.log(NomPatient);  
-                               if (data != "") {
-                                $('#espaceChoixPatient').append(data);
-
-                               } else{
-                                document.getElementById('espaceChoixPatient').innerHTML = "<div style='font-size:20xp; text-align:center; margin-top:10xp'>Pas de Patient de ces infos</div>";
-                                document.getElementById("saveRDVBtn").disabled = false;
-                               }
-                          }  
-                      });
-                     }      
-                }); 
-              });                                      
-    </script>
-
-    <script>  
-         $(document).ready(function(){
-
-              $('#mailPhonePatientModif').keyup(function(){  
-              	   document.getElementById("updateRDVBtn").disabled = false;
-                   $('#espaceChoixPatientModif').html('');
-
-                   var NomPatient = $(this).val();
-
-                   if (NomPatient =="") {
-                   	$('#espaceChoixPatientModif').html('');
-                   	document.getElementById("updateRDVBtn").disabled = false;
-                   }
-
-                   if (NomPatient != ""){
-
-                      $.ajax({
-                          url:"fonctionnalites/affichage/getPatientFromName.php",  
-                          type:"GET",  
-                          data:{NomPhonePatient: NomPatient,Type: "update"},
-                          success:function(data)  
-                          {  
-                               if (data != "") {
-                                $('#espaceChoixPatientModif').append(data);
-
-                               } else{
-                                document.getElementById('espaceChoixPatientModif').innerHTML = "<div style='font-size:20xp; text-align:center; margin-top:10xp'>Pas de Patient de ces infos</div>";
-                                document.getElementById("updateRDVBtn").disabled = false;
-                               }
-                          }  
-                      });
-                     }      
-                }); 
-              });                                      
+              $('#modifModal').on('shown.bs.modal', function () {
+                  $('#mailPhonePatientModif').trigger('rp-actualiser');
+              });
+         });
     </script>
 
     <script>

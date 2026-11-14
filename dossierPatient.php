@@ -591,32 +591,26 @@
                                              
     </script>
 
-    <script>  
+    <script src="assets/js/recherchePatient.js"></script>
+    <script>
          $(document).ready(function(){
 
-              $('#mailPhonePatient').keyup(function(){  
-                   $('#espaceChoixPatient').html('');
+              // Recherche de patient : le dossier s'ouvre dès que le patient est choisi
+              RecherchePatient.attacher({
+                  champ   : '#mailPhonePatient',
+                  champId : '#afficherPatient',
+                  url     : 'fonctionnalites/affichage/rechercherPatients.php',
+                  surSelection : function () {
+                      $('#showPatient').click();
+                  }
+              });
 
-                   var NomPatient = $(this).val();
+         });
 
-                   if (NomPatient != ""){
-
-                      $.ajax({
-                          url:"fonctionnalites/affichage/getPatientFromName.php",  
-                          type:"GET",  
-                          data:{NomPhonePatient: encodeURIComponent(NomPatient)},
-                          success:function(data)  
-                          {  
-                               if (data != "") {
-                                $('#espaceChoixPatient').append(data);
-                               } else{
-                                document.getElementById('espaceChoixPatient').innerHTML = "<div style='font-size:20xp; text-align:center; margin-top:10xp'>Pas de Patient de ces infos</div>"
-                               }
-                          }  
-                      });
-                     }      
-                }); 
-              });                                 
+         // Curseur directement dans la recherche une fois la page chargée
+         $(window).on('load', function(){
+              setTimeout(function(){ $('#mailPhonePatient').focus(); }, 300);
+         });
     </script>
 
     <script>
