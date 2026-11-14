@@ -5,6 +5,8 @@
   $signallisation = "";
   $motifsignallis = "";
 
+  $typeSeance = normaliserTypeSeance(isset($_REQUEST['typeSeance']) ? $_REQUEST['typeSeance'] : "simple");
+
   if (isset($_REQUEST['nomCabinet']) && isset($_REQUEST['idPatien'])) {
 
     $signagl    = explode("||", getPatientSignalisation($_REQUEST['nomCabinet'],$_REQUEST['idPatien']));
@@ -85,7 +87,7 @@ if (isset($_SESSION['typeCompte']) && isset($_REQUEST['nomCabinet']) && $_SESSIO
 
             if (isset($_REQUEST['type']) && $type=="1") {
 
-                insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"1",$signallisation,$motifsignallis);
+                insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"1",$signallisation,$motifsignallis,$typeSeance);
                 header("Location: ../../mesRDV.php");
             }
             /*else if ($_REQUEST['type'] == "0") {
@@ -99,12 +101,12 @@ if (isset($_SESSION['typeCompte']) && isset($_REQUEST['nomCabinet']) && $_SESSIO
             if (isset($_REQUEST['type'])) {
 
                 if ($_REQUEST['type'] == "0") {
-                    insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"0",$signallisation,$motifsignallis);
+                    insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"0",$signallisation,$motifsignallis,$typeSeance);
                     header("Location: ../../medecin.php");
                   }
 
                 else if ($_REQUEST['type'] == "2") {
-                    insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"2",$signallisation,$motifsignallis);
+                    insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"2",$signallisation,$motifsignallis,$typeSeance);
                     header("Location: ../../medecin.php");
                 }
             }
@@ -116,13 +118,13 @@ if (isset($_SESSION['typeCompte']) && isset($_REQUEST['nomCabinet']) && $_SESSIO
             if (isset($_REQUEST['type'])) {
 
                 if ($_REQUEST['type'] == "0") {echo " 0";
-                    insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"0",$signallisation,$motifsignallis);
+                    insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"0",$signallisation,$motifsignallis,$typeSeance);
                     header("Location: ../../staff.php");
                   }
 
                 else if ($_REQUEST['type'] == "2") {echo " 1";
 
-                    insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"2",$signallisation,$motifsignallis);
+                    insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"2",$signallisation,$motifsignallis,$typeSeance);
                     header("Location: ../../staff.php");
                 }
             }
@@ -203,7 +205,7 @@ if (isset($_SESSION['typeCompte']) && isset($_REQUEST['nomCabinet']) && $_SESSIO
 
             if (isset($_REQUEST['type']) && $type=="1") {
 
-                $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"1",$signallisation,$motifsignallis);
+                $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"1",$signallisation,$motifsignallis,$typeSeance);
                     insertionRelationRDVSeance($nomCabinet,$id_seance,$lastIdInseted);
                 header("Location: ../../mesRDV.php");
             }
@@ -219,13 +221,13 @@ if (isset($_SESSION['typeCompte']) && isset($_REQUEST['nomCabinet']) && $_SESSIO
 
                 if ($_REQUEST['type'] == "0") {
                     $lastIdInseted = insertionRDV($nomCabinet, $name, $prenom, $mail, $phone, $dateRDV, $heureRDV, $motifCons, $medecin, $identifiantP,"0", 
-                        $signallisation, $motifsignallis);
+                        $signallisation, $motifsignallis,$typeSeance);
                     insertionRelationRDVSeance($nomCabinet,$id_seance,$lastIdInseted);
                     header("Location: ../../medecin.php");
                   }
 
                 else if ($_REQUEST['type'] == "2") {
-                    $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"2",$signallisation,$motifsignallis);
+                    $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"2",$signallisation,$motifsignallis,$typeSeance);
                     insertionRelationRDVSeance($nomCabinet,$id_seance,$lastIdInseted);
                     header("Location: ../../medecin.php");
                 }
@@ -238,14 +240,14 @@ if (isset($_SESSION['typeCompte']) && isset($_REQUEST['nomCabinet']) && $_SESSIO
             if (isset($_REQUEST['type'])) {
 
                 if ($_REQUEST['type'] == "0") {echo " 0";
-                    $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"0",$signallisation,$motifsignallis);
+                    $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"0",$signallisation,$motifsignallis,$typeSeance);
                     insertionRelationRDVSeance($nomCabinet,$id_seance,$lastIdInseted);
                     header("Location: ../../staff.php");
                   }
 
                 else if ($_REQUEST['type'] == "2") {echo " 1";
 
-                    $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"2",$signallisation,$motifsignallis);
+                    $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"2",$signallisation,$motifsignallis,$typeSeance);
                     insertionRelationRDVSeance($nomCabinet,$id_seance,$lastIdInseted);
                     header("Location: ../../staff.php");
                 }
@@ -327,7 +329,7 @@ if (isset($_SESSION['typeCompte']) && isset($_REQUEST['nomCabinet']) && $_SESSIO
 
             if (isset($_REQUEST['type']) && $type=="1") {
 
-                $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"1",$signallisation,$motifsignallis);
+                $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"1",$signallisation,$motifsignallis,$typeSeance);
                     insertionRelationRDVSeance($nomCabinet,$id_seance,$lastIdInseted);
                 header("Location: ../../rdvpatient.php?idPatient=".$identifiantP);
             }
@@ -342,13 +344,13 @@ if (isset($_SESSION['typeCompte']) && isset($_REQUEST['nomCabinet']) && $_SESSIO
             if (isset($_REQUEST['type'])) {
 
                 if ($_REQUEST['type'] == "0") {
-                    $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"0",$signallisation,$motifsignallis);
+                    $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"0",$signallisation,$motifsignallis,$typeSeance);
                     insertionRelationRDVSeance($nomCabinet,$id_seance,$lastIdInseted);
                     header("Location: ../../rdvpatient.php?idPatient=".$identifiantP);
                   }
 
                 else if ($_REQUEST['type'] == "2") {
-                    $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"2",$signallisation,$motifsignallis);
+                    $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"2",$signallisation,$motifsignallis,$typeSeance);
                     insertionRelationRDVSeance($nomCabinet,$id_seance,$lastIdInseted);
                     header("Location: ../../rdvpatient.php?idPatient=".$identifiantP);
                 }
@@ -361,14 +363,14 @@ if (isset($_SESSION['typeCompte']) && isset($_REQUEST['nomCabinet']) && $_SESSIO
             if (isset($_REQUEST['type'])) {
 
                 if ($_REQUEST['type'] == "0") {echo " 0";
-                    $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"0",$signallisation,$motifsignallis);
+                    $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"0",$signallisation,$motifsignallis,$typeSeance);
                     insertionRelationRDVSeance($nomCabinet,$id_seance,$lastIdInseted);
                     header("Location: ../../rdvpatient.php?idPatient=".$identifiantP);
                   }
 
                 else if ($_REQUEST['type'] == "2") {echo " 1";
 
-                    $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"2",$signallisation,$motifsignallis);
+                    $lastIdInseted = insertionRDV($nomCabinet,$name,$prenom,$mail,$phone,$dateRDV,$heureRDV,$motifCons,$medecin,$identifiantP,"2",$signallisation,$motifsignallis,$typeSeance);
                     insertionRelationRDVSeance($nomCabinet,$id_seance,$lastIdInseted);
                     header("Location: ../../rdvpatient.php?idPatient=".$identifiantP);
                 }

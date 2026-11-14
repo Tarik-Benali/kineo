@@ -8,3 +8,6 @@ backup/*.sql
 .idea/
 .vscode/
 *.cmd
+
+# Scripts de mise a jour de la base (a versionner)
+!migrations/*.sql

@@ -1355,7 +1355,7 @@ function ajoutConsultation($Cabinet,$idPatient,$idMedecin,$conclusion){
                             } 
 				}
 
-function insertionRDV($Cabinet,$name,$prenom,$mail,$phone,$datRDV,$heureRDV,$motif,$idDoc,$idPat,$type,$signal,$motifSignal){
+function insertionRDV($Cabinet,$name,$prenom,$mail,$phone,$datRDV,$heureRDV,$motif,$idDoc,$idPat,$type,$signal,$motifSignal,$typeSeance = "simple"){
 
 
 		$database = crypterNomDeLaBase($Cabinet);
@@ -1373,6 +1373,7 @@ function insertionRDV($Cabinet,$name,$prenom,$mail,$phone,$datRDV,$heureRDV,$mot
 		$type    	= str_replace("'","\'",$type);
 		$motif    	= str_replace("'","\'",$motif);
 		$motifSignal= str_replace("'","\'",$motifSignal);
+		$typeSeance = normaliserTypeSeance($typeSeance);
 
 		$doc 		= getMedecinName($idDoc);
 
@@ -1381,7 +1382,7 @@ function insertionRDV($Cabinet,$name,$prenom,$mail,$phone,$datRDV,$heureRDV,$mot
                             $pdo_options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
                             $bdd = new PDO("mysql:host=$host_name;dbname=$database",$db_user_name,$db_password, $pdo_options);                      
                             
-							$reponse = $bdd->query("INSERT INTO rdv (nomP,prenoP,mail,tel,dateRDV,heureRDV,medecin,motifCons,idMedecin,idPatient,type,patient_a_risque,motif_risque) VALUES ('$name','$prenom','$mail','$phone','$datRDV','$heureRDV','$doc','$motif','$idDoc','$idPat','$type','$signal','$motifSignal')");
+							$reponse = $bdd->query("INSERT INTO rdv (nomP,prenoP,mail,tel,dateRDV,heureRDV,medecin,motifCons,idMedecin,idPatient,type,type_seance,patient_a_risque,motif_risque) VALUES ('$name','$prenom','$mail','$phone','$datRDV','$heureRDV','$doc','$motif','$idDoc','$idPat','$type','$typeSeance','$signal','$motifSignal')");
 							$id_rdv = $bdd->lastInsertId();
 
 							return $id_rdv;
@@ -11457,5 +11458,7 @@ function nbrAbsenceTB($nomBD){
         }
              
     }
+
+	include_once(__DIR__ . "/fonctionsTypeSeance.php");
 
 ?>
