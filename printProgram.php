@@ -171,17 +171,16 @@
                                                 Patient
                                             </th>
                                             <th>
+                                                Type séance
+                                            </th>
+                                            <th>
                                                 Date
-                                            </th>
-
-                                            <th data-hide="phone,tablet">
-                                                Identifiant
-                                            </th>
-                                            <th data-hide="phone,tablet">
-                                                Chez docteur
                                             </th>
                                             <th>
                                                 Heure
+                                            </th>
+                                            <th data-hide="phone,tablet">
+                                                Chez docteur
                                             </th>
                                             <th>
                                                 Téléphone
@@ -199,7 +198,7 @@
                                     </tbody>
                                     <tfoot>
                                             <tr>
-                                                <td colspan="5">
+                                                <td colspan="6">
                                                     <div class="pagination pagination-centered"></div>
                                                 </td>
                                             </tr>
@@ -374,8 +373,57 @@
                 clonedTable.removeChild(tfoot[0]);
             }
 
+            // Toutes les lignes de la journée (pas seulement la page affichée), hors lignes exclues par le filtre
+            $(clonedTable).find('tbody > tr').each(function () {
+                if ($(this).hasClass('footable-filtered') || $(this).hasClass('footable-row-detail')) {
+                    $(this).remove();
+                } else {
+                    $(this).show();
+                }
+            });
+            $(clonedTable).find('th, td').show();
+
+            // Résumé de la journée
+            var compteurs = { V: 0, BV: 0, E: 0, N: 0 };
+            $(clonedTable).find('.etiquette-impression').each(function () {
+                var code = $(this).attr('data-etiquette');
+                if (compteurs.hasOwnProperty(code)) { compteurs[code]++; }
+            });
+            var nbRDV  = $(clonedTable).find('tbody > tr').length;
+            var resume = nbRDV + " rendez-vous";
+            if (compteurs.V)  { resume += " - " + compteurs.V  + " Séance(s) Vestibulaire(s)"; }
+            if (compteurs.BV) { resume += " - " + compteurs.BV + " Bilan(s) Vestibulaire(s)"; }
+            if (compteurs.E)  { resume += " - " + compteurs.E  + " Séance(s) Esthétique(s)"; }
+            if (compteurs.N)  { resume += " - " + compteurs.N  + " Nouveau(x) patient(s)"; }
+
+            var titre = "Rendez-vous du <?php echo (isset($_GET['selectedDay']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['selectedDay'])) ? date('d/m/Y', strtotime($_GET['selectedDay'])) : ''; ?>";
+
+            var etiquette = function (code, couleur, fond) {
+                return '<span style="display:inline-block; padding:1px 6px; border-radius:3px; font-weight:bold; font-size:11px; color:' + couleur + '; background:' + fond + '; border:1px solid ' + (fond == '#fff' ? couleur : fond) + '; -webkit-print-color-adjust:exact; print-color-adjust:exact;">' + code + '</span>';
+            };
+            var legende = etiquette('V', '#fff', '#8E44AD') + ' Séance Vestibulaire &nbsp;&nbsp; '
+                        + etiquette('BV', '#fff', '#AD1457') + ' Bilan Vestibulaire &nbsp;&nbsp; '
+                        + etiquette('E', '#fff', '#B7950B') + ' Séance Esthétique &nbsp;&nbsp; '
+                        + etiquette('N', '#E74C3C', '#fff') + ' Nouveau patient';
+
+            var style = '<style>'
+                      + 'body{font-family:Arial,Helvetica,sans-serif; font-size:12px; margin:15px;}'
+                      + 'h2{font-size:16px; margin:0 0 4px 0;}'
+                      + '.resume{margin-bottom:10px; color:#444;}'
+                      + '.legende{margin-top:10px; font-size:11px;}'
+                      + 'table{border-collapse:collapse; width:100%;}'
+                      + 'th,td{border:1px solid #999; padding:4px 6px; text-align:left;}'
+                      + 'td:not(:first-child){white-space:nowrap;}'
+                      + 'th{background:#eee; -webkit-print-color-adjust:exact; print-color-adjust:exact;}'
+                      + '</style>';
+
             var newWin = window.open("");
-            newWin.document.write(clonedTable.outerHTML);
+            newWin.document.write('<html><head><meta charset="utf-8"><title>' + titre + '</title>' + style + '</head><body>'
+                                + '<h2>' + titre + '</h2>'
+                                + '<div class="resume">' + resume + '</div>'
+                                + clonedTable.outerHTML
+                                + '<div class="legende">' + legende + '</div>'
+                                + '</body></html>');
             newWin.document.close();
             newWin.focus();
             newWin.print();

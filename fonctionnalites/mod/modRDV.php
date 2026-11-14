@@ -32,100 +32,132 @@ if (isset($_SESSION['typeCompte']) && isset($_REQUEST['nomCabinet']) && $_SESSIO
 		//Type Modif : 1 - modifider toutes les données du RDV, 2 - modifier l'etat ou validité, 3 - supprimer le RDV. 
 		if ($typeModif == 1) {
 
-			$idRDV = $_REQUEST['idRDVModif'];
+			// Seules les informations réellement modifiées dans le formulaire sont enregistrées
+			$idRDV = isset($_REQUEST['idRDVModif']) ? trim($_REQUEST['idRDVModif']) : "";
 
-			// Escape user inputs for security
-			$type         = mysqli_real_escape_string($con, $_REQUEST['type']);
-			$idCab        = mysqli_real_escape_string($con, $_REQUEST['idCab']);
-			$dateRDV      = mysqli_real_escape_string($con, $_REQUEST['dateRDV']);
-			$medecin 	    = mysqli_real_escape_string($con, $_REQUEST['medecin']);
-			$idSeance     = mysqli_real_escape_string($con, $_REQUEST['seance']);
-			$motifCons    = mysqli_real_escape_string($con, $_REQUEST['motifCons']);
-			$identifiantP = mysqli_real_escape_string($con, $_REQUEST['idPatien']);
+			try
+                {
+                    $pdo_options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
+                    $bdd = new PDO("mysql:host=$host_name;dbname=$nomB",$db_user_name,$db_password, $pdo_options);
 
-			$motifCons    = str_replace("'", "`", $motifCons);
-			$typeSeance   = normaliserTypeSeance(isset($_REQUEST['typeSeance']) ? $_REQUEST['typeSeance'] : "simple");
-			$majTypeSeance = isset($_REQUEST['typeSeance']) ? ",`type_seance`='$typeSeance'" : "";
+                    $reponse = $bdd->prepare("SELECT * FROM `rdv` WHERE `id` = ?");
+                    $reponse->execute(array($idRDV));
+                    $rdvActuel = $reponse->fetch();
+                    $reponse->closeCursor();
 
-			if (isset($_REQUEST['timeRDV']) && $_REQUEST['timeRDV'] !="") {
-				$heureRDV     = mysqli_real_escape_string($con, $_REQUEST['timeRDV']);
-			}else{
-				$heureRDV = getHeureFromSeance($nomBD,$idSeance);
-			}
+                    if (!$rdvActuel) {
+                        header("Location: ../../medecin.php");
+                        exit();
+                    }
 
-			if ($identifiantP != "") {
-				try
-	                {
-	                    $pdo_options[PDO::ATTR_ERRMODE] = PDO::ERRMODE_EXCEPTION;
-	                    $bdd = new PDO("mysql:host=$host_name;dbname=$nomB",$db_user_name,$db_password, $pdo_options);                      
-	                                
-	                    // On recupere tout le contenu de la table news
-	                    $reponse = $bdd->query("SELECT * FROM patient WHERE idPatient = '$identifiantP'");
-	                                                      
-	                    // On affiche le resultat
-	                    while ($donnees = $reponse->fetch())
-	                       {
-	                            $name   = $donnees['nomPatient'];
-	                            $mail   = $donnees['emailPatient'];
-	                            $phone  = $donnees['numTelPatient'];
-	                            $prenom = $donnees['prenomPatient'];                                                      
-	                        }
-	                    $reponse->closeCursor();
-	                }
-	            catch(Exception $e)
-	                {
-	                   die('Erreur : '.$e->getMessage());
-	                }
+                    $champs      = array();
+                    $valeurs     = array();
+                    $idSeanceMaj = "";
 
-	                $docName	= getMedecinName($medecin);
+                    // Date
+                    $dateActuelle = date('Y-m-d', strtotime(str_replace("/", "-", $rdvActuel['dateRDV'])));
+                    $dateRDV      = isset($_REQUEST['dateRDV']) ? trim($_REQUEST['dateRDV']) : "";
 
+                    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateRDV) && $dateRDV != $dateActuelle) {
+                        $champs[]  = "`dateRDV` = ?";
+                        $valeurs[] = $dateRDV;
+                    }
 
-	                $sql = "UPDATE `rdv` SET `nomP`='$name',`prenoP`='$prenom',`mail`='$mail',`tel`='$phone',`dateRDV`='$dateRDV',`heureRDV`='$heureRDV',`medecin`='$docName',`motifCons`='$motifCons',`idMedecin`='$medecin',`idPatient`='$identifiantP'$majTypeSeance WHERE`id`='$idRDV'";
+                    // Heure : uniquement si une séance a été choisie dans la liste
+                    $idSeance = isset($_REQUEST['seance']) ? trim($_REQUEST['seance']) : "";
 
-					if ($con->query($sql) === TRUE) {
+                    if (isset($_REQUEST['timeRDV']) && trim($_REQUEST['timeRDV']) != "") {
+                        $heureRDV = trim($_REQUEST['timeRDV']);
+                    }else if ($idSeance != "") {
+                        $heureRDV = getHeureFromSeance($nomBD, $idSeance);
+                    }else{
+                        $heureRDV = "";
+                    }
 
-						$sqls = "UPDATE `rel_seance_rdv` SET `id_seance`='$idSeance' WHERE `id`='$idRDV'";
+                    $heureChangee = ($heureRDV != "" && substr($heureRDV, 0, 5) != substr($rdvActuel['heureRDV'], 0, 5));
 
-						if ($con->query($sqls) === TRUE) {
+                    if ($heureChangee) {
+                        $champs[]  = "`heureRDV` = ?";
+                        $valeurs[] = $heureRDV;
+                    }
 
-							insertStat($nomBD,"changement_rdv");
-							header("Location: ../../medecin.php");
-						    
-						} else {
-						    echo "Error updating record: " . $con->error;
-						}
+                    // Nouvelle séance (créneau) seulement si la date ou l'heure a changé
+                    if ($idSeance != "" && ($heureChangee || count($champs) > 0)) {
+                        $idSeanceMaj = $idSeance;
+                    }
 
-						//header("Location: ../../medecin.php");
-					    
-					} else {
-					    echo "Error updating record: " . $con->error;
-					}
-			}else{
-	                $docName	= getMedecinName($medecin);
+                    // Patient : uniquement si un autre patient a été sélectionné
+                    $identifiantP = isset($_REQUEST['idPatien']) ? trim($_REQUEST['idPatien']) : "";
+                    $patientMaj   = false;
 
-	                $sql = "UPDATE `rdv` SET`dateRDV`='$dateRDV',`heureRDV`='$heureRDV',`medecin`='$docName',`motifCons`='$motifCons',`idMedecin`='$medecin',`idPatient`='$identifiantP'$majTypeSeance WHERE`id`='$idRDV'";
+                    if ($identifiantP != "" && $identifiantP != trim($rdvActuel['idPatient'])) {
 
-					if ($con->query($sql) === TRUE) {
+                        $reponse = $bdd->prepare("SELECT * FROM `patient` WHERE TRIM(`idPatient`) = ? LIMIT 1");
+                        $reponse->execute(array($identifiantP));
+                        $patient = $reponse->fetch();
+                        $reponse->closeCursor();
 
-						$sqls = "UPDATE `rel_seance_rdv` SET `id_seance`='$idSeance' WHERE `id`='$idRDV'";
+                        if ($patient) {
+                            array_push($champs, "`nomP` = ?", "`prenoP` = ?", "`mail` = ?", "`tel` = ?", "`idPatient` = ?");
+                            array_push($valeurs, $patient['nomPatient'], $patient['prenomPatient'], $patient['emailPatient'], $patient['numTelPatient'], $identifiantP);
+                            $patientMaj = true;
+                        }
+                    }
 
-						if ($con->query($sqls) === TRUE) {
+                    // Motif
+                    if (isset($_REQUEST['motifCons'])) {
+                        $motifCons   = str_replace("'", "`", trim($_REQUEST['motifCons']));
+                        $motifActuel = trim($rdvActuel['motifCons']);
 
-							//echo "hhhh";
-							//insertStat($nomBD,"changement_rdv");
-							insertChangement($nomBD);
-							header("Location: ../../medecin.php");
-						    
-						} else {
-						    echo "Error updating record: " . $con->error;
-						}
+                        // "Aucun motif indiqué pour cette séance !" (avec ou sans points) = pas de motif
+                        if ($motifCons == "." || strpos($motifCons, "Aucun motif indiqu") === 0) {
+                            $motifCons = "";
+                        }
+                        if ($motifActuel == "." || strpos($motifActuel, "Aucun motif indiqu") === 0) {
+                            $motifActuel = "";
+                        }
 
-						//header("Location: ../../medecin.php");
-					    
-					} else {
-					    echo "Error updating record: " . $con->error;
-					}
-			}
+                        if ($motifCons != $motifActuel && $motifCons != $motifActuel . ".") {
+                            $champs[]  = "`motifCons` = ?";
+                            $valeurs[] = $motifCons;
+                        }
+                    }
+
+                    // Type de séance
+                    if (isset($_REQUEST['typeSeance'])) {
+                        $typeSeance = normaliserTypeSeance($_REQUEST['typeSeance']);
+
+                        if ($typeSeance != normaliserTypeSeance($rdvActuel['type_seance'])) {
+                            $champs[]  = "`type_seance` = ?";
+                            $valeurs[] = $typeSeance;
+                        }
+                    }
+
+                    if (count($champs) > 0) {
+                        $valeurs[] = $idRDV;
+                        $reponse   = $bdd->prepare("UPDATE `rdv` SET " . implode(", ", $champs) . " WHERE `id` = ?");
+                        $reponse->execute($valeurs);
+                    }
+
+                    if ($idSeanceMaj != "") {
+                        $reponse = $bdd->prepare("UPDATE `rel_seance_rdv` SET `id_seance` = ? WHERE `id` = ?");
+                        $reponse->execute(array($idSeanceMaj, $idRDV));
+                    }
+
+                    if (count($champs) > 0) {
+                        if ($patientMaj || trim($rdvActuel['idPatient']) != "") {
+                            insertStat($nomBD,"changement_rdv");
+                        }else{
+                            insertChangement($nomBD);
+                        }
+                    }
+
+                    header("Location: ../../medecin.php");
+                }
+            catch(Exception $e)
+                {
+                   die('Erreur : '.$e->getMessage());
+                }
 
 				
 		}

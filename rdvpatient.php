@@ -555,7 +555,7 @@
 
                 <!-- Debut RDV modal -->
                 <div class="modal fade" id="rdvModal" tabindex="-1" role="dialog" aria-labelledby="modalDAjoutRDV" aria-hidden="true">
-                  <div class="modal-dialog" role="document">
+                  <div class="modal-dialog modal-lg" role="document" style="width: 1000px; max-width: 95%;">
                     <div class="modal-content">
                       <div class="modal-header">
                         <h5 class="modal-title" id="modalDAjoutRDV">Ajout de rendez-vous</h5>
@@ -592,25 +592,22 @@
                                 <input type="time" class="form-control" <?php //echo "value=\"".date("H:i")."\"";?> name="timeRDV" required>
                             </div-->
 
-                            <div style="width: 48%; margin-right: 2%;">
+                            <div style="width: 32%; margin-right: 2%;">
                                 <label class="control-label" for="dateRDV">Date Rendez-vous</label>
                                 <br>
                                 <input type="date" class="form-control" id="dateRDV" name="dateRDV" value="<?php echo date('Y-m-d'); ?>" required>
                             </div>
 
-                            <div style="width: 50%;">
+                            <div style="width: 34%; margin-right: 2%;">
                                 <label class="control-label" for="heureRDV">Heure Rendez-vous</label>
                                 <br>
                                 <div id="selectSeance"></div>
                                 <!--input type="date" class="form-control" id="heureRDV" name="heureRDV" value="<?php //echo date('Y-m-d'); ?>" required-->
                             </div>
-                        </div>
 
-                        <br><br><br>
-
-                        <div style="width: 100%;">
-                            <label class="control-label" for="typeSeanceRDV">Type de séance</label>
-                            <div class="controls">
+                            <div style="width: 30%;">
+                                <label class="control-label" for="typeSeanceRDV">Type de séance</label>
+                                <br>
                                 <select class="form-control" id="typeSeanceRDV" name="typeSeance">
                                     <?php afficherOptionsTypeSeance("simple"); ?>
                                 </select>
