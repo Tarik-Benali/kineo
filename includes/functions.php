@@ -11195,29 +11195,33 @@ function nbrAbsenceTB($nomBD){
                                          
               $date = $jour;
               $ceMoment = date("H:i");
-              $reponse = $bdd->query("SELECT * FROM rdv WHERE statut <> 4 AND dateRDV = '".$jour."' order by dateRDV desc, heureRDV asc");
-                                      
-          while ($donnees = $reponse->fetch())
+              $reponse = $bdd->prepare("SELECT * FROM rdv WHERE statut <> 4 AND dateRDV = ? order by dateRDV desc, heureRDV asc");
+              $reponse->execute(array($jour));
+              $rendezVous = $reponse->fetchAll();
+              $reponse->closeCursor();
+
+              $premierRDV = premiersRDVDesPatients($bdd, $rendezVous);
+
+          foreach ($rendezVous as $donnees)
              {
+                $nouveau = estPremierRDVDuPatient($premierRDV, $donnees['idPatient'], $donnees['statut'], $donnees['dateRDV'], $donnees['heureRDV']);
+
                 echo "<tr>";
 
                     echo "<td> " . $donnees['nomP'] ." ". $donnees['prenoP'] . "</td>";
+                    echo "<td style=\"white-space:nowrap;\"> " . etiquettesSeanceHTML($donnees['type_seance'], $nouveau) . " </td>";
                     echo "<td> $donnees[dateRDV] </td>";
-
-                    echo "<td data-value> $donnees[idPatient] </td>";
-                    echo "<td data-value> $donnees[medecin] </td>";       
-
-                    echo "<td data-value=\"1\"> $donnees[heureRDV] </td>"; 
-                    echo "<td data-value> $donnees[tel] </td>";                    
+                    echo "<td data-value=\"1\"> $donnees[heureRDV] </td>";
+                    echo "<td data-value> $donnees[medecin] </td>";
+                    echo "<td data-value> $donnees[tel] </td>";
 
                 echo "</tr>";
 			}
-               $reponse->closeCursor();
         }
     catch(Exception $e)
         {
            die('Erreur : '.$e->getMessage());
-        }				 
+        }
 	}
 
 

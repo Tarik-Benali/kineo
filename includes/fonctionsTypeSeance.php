@@ -45,6 +45,85 @@ function afficherOptionsTypeSeance($typeSelectionne = "simple"){
 
 
 /* -------------------------------------------------------------------------
+ * Nouveau patient : premier rendez-vous du patient
+ * (les absences et les suppressions ne comptent pas)
+ * ------------------------------------------------------------------------- */
+
+function premiersRDVDesPatients($bdd, $rendezVous){
+
+	$premierRDV  = array();
+	$idsPatients = array();
+
+	foreach ($rendezVous as $donnees) {
+		$idPat = trim((string) $donnees['idPatient']);
+		if ($idPat != "") {
+			$idsPatients[$idPat] = true;
+		}
+	}
+
+	if (count($idsPatients) > 0) {
+
+		$ids    = array_keys($idsPatients);
+		$marque = implode(",", array_fill(0, count($ids), "?"));
+
+		$reponse = $bdd->prepare("SELECT TRIM(`idPatient`) AS idPatient, MIN(CONCAT(`dateRDV`, ' ', `heureRDV`)) AS premier FROM `rdv` WHERE `statut` NOT IN (0, 4) AND TRIM(`idPatient`) IN ($marque) GROUP BY TRIM(`idPatient`)");
+		$reponse->execute($ids);
+
+		while ($donnees = $reponse->fetch())
+		{
+			$premierRDV[$donnees['idPatient']] = $donnees['premier'];
+		}
+		$reponse->closeCursor();
+	}
+
+	return $premierRDV;
+}
+
+function estPremierRDVDuPatient($premierRDV, $idPatient, $statut, $jour, $heure){
+
+	$idPatient = trim((string) $idPatient);
+
+	if ($idPatient == "" || $statut == "0" || !isset($premierRDV[$idPatient])) {
+		return false;
+	}
+
+	return (($jour . " " . $heure) <= $premierRDV[$idPatient]);
+}
+
+
+/* -------------------------------------------------------------------------
+ * Etiquettes V / BV / E / N (styles en ligne pour rester visibles à l'impression)
+ * ------------------------------------------------------------------------- */
+
+function etiquettesSeanceHTML($typeSeance, $nouveau){
+
+	$etiquettes = array(
+		"vestibulaire"       => array("V",  "#8E44AD"),
+		"bilan_vestibulaire" => array("BV", "#AD1457"),
+		"esthetique"         => array("E",  "#B7950B")
+	);
+
+	$style = "display:inline-block; padding:1px 6px; margin-right:3px; border-radius:3px; font-weight:bold; font-size:11px; line-height:16px; -webkit-print-color-adjust:exact; print-color-adjust:exact;";
+
+	$typeSeance = normaliserTypeSeance($typeSeance);
+	$html       = "";
+
+	if (isset($etiquettes[$typeSeance])) {
+		list($code, $couleur) = $etiquettes[$typeSeance];
+		$html .= "<span class=\"etiquette-impression\" data-etiquette=\"$code\" title=\"" . libelleTypeSeance($typeSeance) . "\" style=\"$style color:#fff; background:$couleur; border:1px solid $couleur;\">$code</span>";
+	}else{
+		$html .= "<span style=\"color:#888; margin-right:3px;\">Simple</span>";
+	}
+
+	if ($nouveau) {
+		$html .= "<span class=\"etiquette-impression\" data-etiquette=\"N\" title=\"Nouveau patient\" style=\"$style color:#E74C3C; background:#fff; border:1px solid #E74C3C;\">N</span>";
+	}
+
+	return $html;
+}
+
+
+/* -------------------------------------------------------------------------
  * Agenda : rendez-vous d'une période (chargés à la demande par le calendrier)
  * ------------------------------------------------------------------------- */
 
@@ -68,31 +147,7 @@ function getRDVForAgendaPeriode($nomBD, $idMedecin, $dateDebut, $dateFin){
 			$rendezVous = $reponse->fetchAll();
 			$reponse->closeCursor();
 
-			// Premier rendez-vous (hors absences et suppressions) de chaque patient de la période
-			$premierRDV  = array();
-			$idsPatients = array();
-
-			foreach ($rendezVous as $donnees) {
-				$idPat = trim((string) $donnees['idPatient']);
-				if ($idPat != "") {
-					$idsPatients[$idPat] = true;
-				}
-			}
-
-			if (count($idsPatients) > 0) {
-
-				$ids    = array_keys($idsPatients);
-				$marque = implode(",", array_fill(0, count($ids), "?"));
-
-				$reponse = $bdd->prepare("SELECT TRIM(`idPatient`) AS idPatient, MIN(CONCAT(`dateRDV`, ' ', `heureRDV`)) AS premier FROM `rdv` WHERE `statut` NOT IN (0, 4) AND TRIM(`idPatient`) IN ($marque) GROUP BY TRIM(`idPatient`)");
-				$reponse->execute($ids);
-
-				while ($donnees = $reponse->fetch())
-				{
-					$premierRDV[$donnees['idPatient']] = $donnees['premier'];
-				}
-				$reponse->closeCursor();
-			}
+			$premierRDV = premiersRDVDesPatients($bdd, $rendezVous);
 
 			foreach ($rendezVous as $donnees) {
 
@@ -119,14 +174,7 @@ function getRDVForAgendaPeriode($nomBD, $idMedecin, $dateDebut, $dateFin){
 					$signalisationPatient = "non_risque";
 				}
 
-				// Nouveau patient : premier rendez-vous du patient (les absences et suppressions ne comptent pas)
-				$idPatTrim = trim((string) $idPatient);
-				$nouveau   = false;
-
-				if ($idPatTrim != "" && $statut != "0" && isset($premierRDV[$idPatTrim])) {
-					$ceRDV   = $jour . " " . $heure;
-					$nouveau = ($ceRDV <= $premierRDV[$idPatTrim]);
-				}
+				$nouveau = estPremierRDVDuPatient($premierRDV, $idPatient, $statut, $jour, $heure);
 
 				// Même format de description que l'ancien agenda (utilisé par eventClick)
 				$espace = ($statut == "6") ? "" : " ";
