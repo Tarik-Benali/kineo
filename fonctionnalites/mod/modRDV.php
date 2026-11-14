@@ -44,6 +44,8 @@ if (isset($_SESSION['typeCompte']) && isset($_REQUEST['nomCabinet']) && $_SESSIO
 			$identifiantP = mysqli_real_escape_string($con, $_REQUEST['idPatien']);
 
 			$motifCons    = str_replace("'", "`", $motifCons);
+			$typeSeance   = normaliserTypeSeance(isset($_REQUEST['typeSeance']) ? $_REQUEST['typeSeance'] : "simple");
+			$majTypeSeance = isset($_REQUEST['typeSeance']) ? ",`type_seance`='$typeSeance'" : "";
 
 			if (isset($_REQUEST['timeRDV']) && $_REQUEST['timeRDV'] !="") {
 				$heureRDV     = mysqli_real_escape_string($con, $_REQUEST['timeRDV']);
@@ -78,7 +80,7 @@ if (isset($_SESSION['typeCompte']) && isset($_REQUEST['nomCabinet']) && $_SESSIO
 	                $docName	= getMedecinName($medecin);
 
 
-	                $sql = "UPDATE `rdv` SET `nomP`='$name',`prenoP`='$prenom',`mail`='$mail',`tel`='$phone',`dateRDV`='$dateRDV',`heureRDV`='$heureRDV',`medecin`='$docName',`motifCons`='$motifCons',`idMedecin`='$medecin',`idPatient`='$identifiantP' WHERE`id`='$idRDV'";
+	                $sql = "UPDATE `rdv` SET `nomP`='$name',`prenoP`='$prenom',`mail`='$mail',`tel`='$phone',`dateRDV`='$dateRDV',`heureRDV`='$heureRDV',`medecin`='$docName',`motifCons`='$motifCons',`idMedecin`='$medecin',`idPatient`='$identifiantP'$majTypeSeance WHERE`id`='$idRDV'";
 
 					if ($con->query($sql) === TRUE) {
 
@@ -101,7 +103,7 @@ if (isset($_SESSION['typeCompte']) && isset($_REQUEST['nomCabinet']) && $_SESSIO
 			}else{
 	                $docName	= getMedecinName($medecin);
 
-	                $sql = "UPDATE `rdv` SET`dateRDV`='$dateRDV',`heureRDV`='$heureRDV',`medecin`='$docName',`motifCons`='$motifCons',`idMedecin`='$medecin',`idPatient`='$identifiantP' WHERE`id`='$idRDV'";
+	                $sql = "UPDATE `rdv` SET`dateRDV`='$dateRDV',`heureRDV`='$heureRDV',`medecin`='$docName',`motifCons`='$motifCons',`idMedecin`='$medecin',`idPatient`='$identifiantP'$majTypeSeance WHERE`id`='$idRDV'";
 
 					if ($con->query($sql) === TRUE) {
 

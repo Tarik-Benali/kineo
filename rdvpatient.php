@@ -608,6 +608,17 @@
 
                         <br><br><br>
 
+                        <div style="width: 100%;">
+                            <label class="control-label" for="typeSeanceRDV">Type de séance</label>
+                            <div class="controls">
+                                <select class="form-control" id="typeSeanceRDV" name="typeSeance">
+                                    <?php afficherOptionsTypeSeance("simple"); ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <br><br><br>
+
                         <div id="espace_Recherche_Nom" style="width: 100%;"> 
                             <label class="control-label" for="nom">Mofit du rendez-vous</label>
                             <div class="controls textarea-container">

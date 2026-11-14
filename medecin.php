@@ -39,8 +39,6 @@
 
             $nomMedecin = getMedecinName($idMedecin);  
 
-            $programme = getRDVForAgenda($nomCabinet,$idMedecin); 
-
             $jourFerme = getNonOuvrableDays($nomCabinet); 
 
             $prixConsultationSimple       = getConsultationPrice($nomCabinet);
@@ -124,7 +122,50 @@
 	    }
 	    .aParent div {
             float: left;
-            clear: none; 
+            clear: none;
+        }
+
+        /* Etiquettes type de séance / nouveau patient sur l'agenda */
+        .etiquette-seance {
+            display: inline-block;
+            padding: 0 4px;
+            margin-right: 3px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            line-height: 15px;
+            color: #fff;
+            vertical-align: middle;
+        }
+        .etiquette-vestibulaire       { background: #8E44AD; }
+        .etiquette-bilan_vestibulaire { background: #AD1457; }
+        .etiquette-esthetique         { background: #B7950B; }
+        .etiquette-nouveau            { background: #fff; color: #E74C3C; border: 1px solid #E74C3C; line-height: 13px; }
+
+        .fc-event.bordure-vestibulaire       { border-left: 6px solid #8E44AD !important; }
+        .fc-event.bordure-bilan_vestibulaire { border-left: 6px solid #AD1457 !important; }
+        .fc-event.bordure-esthetique         { border-left: 6px solid #B7950B !important; }
+
+        .compteur-jour {
+            float: left;
+            padding: 2px 0 0 3px;
+        }
+        .fc-day-header .compteur-jour {
+            float: none;
+            display: block;
+            padding: 2px 0;
+        }
+        .compteur-jour .etiquette-seance {
+            font-size: 10px;
+            margin-right: 2px;
+        }
+        .legende-type-seance {
+            margin-top: 8px;
+        }
+        .legende-type-seance .etiquette-seance {
+            font-size: 11px;
+            line-height: 18px;
+            padding: 0 6px;
         }
     </style>
 
@@ -365,7 +406,10 @@
                                         <select class="form-control" name="signalisation_patient" id="signalisation_patient">
                                             <option value="all">Tous</option>
                                             <option value="risque">Patient à risque</option>
-                                            <option value="non_risque">Patient à aucun prisque</option>
+                                            <option value="non_risque">Patient à aucun risque</option>
+                                            <option value="vestibulaire">Vestibulaire (séances + bilans)</option>
+                                            <option value="esthetique">Esthétique</option>
+                                            <option value="nouveau">Nouveaux patients</option>
                                         </select>
                                     </div>
                             </div>
@@ -380,6 +424,14 @@
                                     <button class="btn btn-warning"></button>&nbsp;En salle&nbsp;&nbsp;
                                     <button class="btn btn-success"></button>&nbsp;Terminé&nbsp;&nbsp;
                                     <button class="btn btn-danger"></button>&nbsp;Absent&nbsp;&nbsp;
+
+                                    <div class="legende-type-seance">
+                                        <span class="etiquette-seance etiquette-vestibulaire">V</span>&nbsp;Séance Vestibulaire&nbsp;&nbsp;
+                                        <span class="etiquette-seance etiquette-bilan_vestibulaire">BV</span>&nbsp;Bilan Vestibulaire&nbsp;&nbsp;
+                                        <span class="etiquette-seance etiquette-esthetique">E</span>&nbsp;Séance Esthétique&nbsp;&nbsp;
+                                        <span class="etiquette-seance etiquette-nouveau">N</span>&nbsp;Nouveau patient&nbsp;&nbsp;
+                                        <small class="text-muted">(les compteurs en haut de chaque jour indiquent le nombre de RDV de chaque type)</small>
+                                    </div>
                             </div>
 
                         </div>
@@ -445,7 +497,18 @@
 
                         <br><br><br>
 
-                        <div id="espace_Recherche_Nom" style="width: 100%;"> 
+                        <div style="width: 100%;">
+                            <label class="control-label" for="typeSeanceRDV">Type de séance</label>
+                            <div class="controls">
+                                <select class="form-control" id="typeSeanceRDV" name="typeSeance">
+                                    <?php afficherOptionsTypeSeance("simple"); ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <br>
+
+                        <div id="espace_Recherche_Nom" style="width: 100%;">
                             <label class="control-label" for="nom">Mofit du rendez-vous</label>
                             <div class="controls">
                                  <textarea style="width: 100%; height: 200px" id="motifCons" name="motifCons" placeholder="  Ecrivez ici ..."></textarea>
@@ -514,7 +577,13 @@
                                 <div id="seancesDispo"></div>
                             </div>
 
-                            
+                            <div style="width: 30%;">
+                                <label class="control-label" for="typeSeanceModif">Type de séance</label>
+                                <br>
+                                <select class="form-control" id="typeSeanceModif" name="typeSeance">
+                                    <?php afficherOptionsTypeSeance("simple"); ?>
+                                </select>
+                            </div>
                         </div>
 
                         <br><br><br>
@@ -744,9 +813,99 @@
 
     <script>
     	var nomCabin  = "<?php echo $nomCabinet;?>";
-        var programme = <?php echo $programme;?>;
         var jourFerme = <?php echo $jourFerme;?>;
         var ceMomentH = "<?php echo date('H:i:s');?>";
+
+        var etiquettesTypeSeance = {
+            vestibulaire:       { code: 'V',  libelle: 'Séance Vestibulaire' },
+            bilan_vestibulaire: { code: 'BV', libelle: 'Bilan Vestibulaire' },
+            esthetique:         { code: 'E',  libelle: 'Séance Esthétique' }
+        };
+
+        function etiquetteHTML(classe, texte, titre) {
+            return '<span class="etiquette-seance etiquette-' + classe + '" title="' + titre + '">' + texte + '</span>';
+        }
+
+        // Etiquettes affichées devant le nom du patient sur l'agenda
+        function etiquettesRDV(proprietes) {
+            var html = '';
+
+            if (proprietes.type_seance && etiquettesTypeSeance[proprietes.type_seance]) {
+                var t = etiquettesTypeSeance[proprietes.type_seance];
+                html += etiquetteHTML(proprietes.type_seance, t.code, t.libelle);
+            }
+            if (proprietes.nouveau) {
+                html += etiquetteHTML('nouveau', 'N', 'Nouveau patient');
+            }
+
+            return html;
+        }
+
+        // Filtre au-dessus de l'agenda
+        function rdvVisibleAvecFiltre(proprietes, filtre) {
+            switch (filtre) {
+                case 'risque':
+                case 'non_risque':
+                    return proprietes.filtre === filtre;
+                case 'vestibulaire':
+                    return proprietes.type_seance === 'vestibulaire' || proprietes.type_seance === 'bilan_vestibulaire';
+                case 'esthetique':
+                    return proprietes.type_seance === 'esthetique';
+                case 'nouveau':
+                    return proprietes.nouveau === true;
+                default:
+                    return true;
+            }
+        }
+
+        // Compteurs par jour (V / BV / E / N) en haut de chaque case de l'agenda
+        function afficherCompteursJour(calendrier) {
+            if (!calendrier) {
+                return;
+            }
+
+            $('#kt_calendar .compteur-jour').remove();
+
+            var compteurs = {};
+
+            calendrier.getEvents().forEach(function(evenement) {
+                var p = evenement.extendedProps;
+
+                if (!evenement.start || !p) {
+                    return;
+                }
+
+                var jour = moment(evenement.start).format('YYYY-MM-DD');
+
+                if (!compteurs[jour]) {
+                    compteurs[jour] = { vestibulaire: 0, bilan_vestibulaire: 0, esthetique: 0, nouveau: 0 };
+                }
+                if (compteurs[jour][p.type_seance] !== undefined) {
+                    compteurs[jour][p.type_seance]++;
+                }
+                if (p.nouveau) {
+                    compteurs[jour].nouveau++;
+                }
+            });
+
+            $.each(compteurs, function(jour, c) {
+                var html = '';
+
+                $.each(etiquettesTypeSeance, function(type, t) {
+                    if (c[type] > 0) {
+                        html += etiquetteHTML(type, t.code + ' ' + c[type], c[type] + ' ' + t.libelle);
+                    }
+                });
+                if (c.nouveau > 0) {
+                    html += etiquetteHTML('nouveau', 'N ' + c.nouveau, c.nouveau + ' Nouveau(x) patient(s)');
+                }
+
+                if (html !== '') {
+                    $('#kt_calendar .fc-day-top[data-date="' + jour + '"], #kt_calendar .fc-day-header[data-date="' + jour + '"]')
+                        .prepend('<span class="compteur-jour">' + html + '</span>');
+                }
+            });
+        }
 
         $(document).ready(function(){
             var KTCalendarBasic = function() {
@@ -797,7 +956,24 @@
                             editable: true,
                             eventLimit: true, // allow "more" link when too many events
                             navLinks: true,
-                            events: programme,
+                            // Les RDV sont chargés à la demande, uniquement pour la période affichée
+                            events: {
+                                url: 'fonctionnalites/affichage/getRDVAgenda.php',
+                                method: 'POST',
+                                failure: function() {
+                                    alert("Erreur lors du chargement des rendez-vous de l'agenda !");
+                                }
+                            },
+
+                            loading: function(enChargement) {
+                                if (!enChargement) {
+                                    afficherCompteursJour(calendar);
+                                }
+                            },
+
+                            datesRender: function(info) {
+                                afficherCompteursJour(calendar);
+                            },
 
                             eventClick: function(info) {
                                 //alert('Event: ' + info.event.title);
@@ -985,8 +1161,14 @@
 
                                 document.getElementById("idPatienModif").value = idPatienz;
 
-                                document.getElementById("dateSean").value = dateRDV; 
+                                document.getElementById("dateSean").value = dateRDV;
                                 //alert("Date : " + dateRDV);
+
+                                // Type de séance du RDV : modification + clôture (type et prix présélectionnés)
+                                var typeSeanceRDV = info.event.extendedProps.type_seance || 'simple';
+                                document.getElementById("typeSeanceModif").value  = typeSeanceRDV;
+                                document.getElementById("typeConsultation").value = typeSeanceRDV;
+                                updatePrice();
 
                                 document.getElementById('passerRDVBtn').click();
 
@@ -1017,7 +1199,22 @@
                                     }
                                 }
 
-                                return ['all', info.event.extendedProps.filtre].indexOf($('#signalisation_patient').val()) >= 0
+                                // Etiquettes : type de séance (V / BV / E) et nouveau patient (N)
+                                var proprietes  = info.event.extendedProps;
+                                var etiquettes  = etiquettesRDV(proprietes);
+                                var emplacement = element.find('.fc-title');
+
+                                if (emplacement.length === 0) {
+                                    emplacement = element.find('.fc-list-item-title');
+                                }
+                                if (etiquettes !== '' && emplacement.length !== 0) {
+                                    emplacement.first().prepend(etiquettes);
+                                }
+                                if (proprietes.type_seance && proprietes.type_seance !== 'simple') {
+                                    element.addClass('bordure-' + proprietes.type_seance);
+                                }
+
+                                return rdvVisibleAvecFiltre(proprietes, $('#signalisation_patient').val());
                             },
 
                             dateClick: function(info) {
